@@ -1,0 +1,176 @@
+1. Contexto e Objetivo
+- Resumo do app (1–3 linhas)
+Plataforma web educacional para aprender Python aplicado a análise de dados com foco em Modern Data Stack 2.0, evoluindo até um dashboard de business intelligence simples de operar.
+- Público-alvo e cenário de uso
+Profissional em transição ou em evolução técnica que precisa aprender Python, dados e construção de aplicações analíticas fim a fim (ingestão, transformação, consulta OLAP e visualização interativa).
+- Valor esperado (como saber que deu certo)
+Conseguir executar pipeline local reproduzível com uv + Polars + DuckDB e disponibilizar dashboard no Marimo com métricas de negócio, filtros e atualização por lote.
+
+2. Escopo (MVP desta etapa)
+- Funcionalidades incluídas agora
+  - Setup do ambiente local com uv.
+  - Estrutura inicial do repositório para pipeline de dados.
+  - Ingestão de dados CSV local com Polars.
+  - Transformação inicial (limpeza, tipagem, agregação simples).
+  - Persistência analítica no DuckDB.
+  - App Marimo com 1 visão executiva e filtros básicos.
+- Funcionalidades fora de escopo (explicitamente)
+  - Multiusuário com permissões avançadas.
+  - Orquestração distribuída.
+  - Deploy em nuvem com autoscaling.
+  - Streaming em tempo real.
+
+3. Requisitos Funcionais
+- Fluxos principais (login, CRUD, visualizações)
+  - Fluxo de preparação: configurar ambiente, instalar dependências, validar execução.
+  - Fluxo de dados: carregar arquivo bruto, transformar, gravar tabela analítica.
+  - Fluxo de visualização: abrir Marimo, aplicar filtro por período/categoria, visualizar KPIs.
+- Estados vazios (empty states)
+  - Sem arquivo de entrada: mensagem orientando pasta e nome esperado.
+  - Sem dados após filtro: mensagem “sem registros para o filtro selecionado”.
+- Ações mínimas de UI por tela
+  - Tela única inicial no Marimo com: seletor de período, seletor de categoria, cards de KPI, tabela resumo.
+
+4. Requisitos Não Funcionais
+- Acessibilidade (ARIA, foco visível, teclado)
+  - Navegação por teclado nos controles do Marimo.
+  - Textos de apoio claros para cada widget interativo.
+- Responsividade (mobile-first)
+  - Layout em bloco único no mobile, grid simples no desktop.
+- Performance (leveza, poucas dependências)
+  - Priorizar Polars e DuckDB sem bibliotecas extras pesadas.
+  - Limitar leitura inicial a colunas necessárias.
+- Observabilidade (logs/eventos essenciais)
+  - Log de início/fim de ingestão.
+  - Log de contagem de linhas lidas, transformadas e gravadas.
+
+5. Navegação e Mapa de Telas
+- Lista de páginas/componentes
+  - Página única de dashboard (Marimo notebook app).
+- Rotas e fluxo do usuário
+  - Execução local via comando CLI para abrir app.
+
+6. Modelo de Dados (se aplicável)
+- Entidades, campos, tipos e regras
+  - fato_vendas:
+    - data_venda (date, obrigatório)
+    - categoria (string, obrigatório)
+    - produto (string, obrigatório)
+    - receita (float, obrigatório, >=0)
+    - custo (float, obrigatório, >=0)
+    - margem (float, derivado)
+- Regras de negócio (unicidade, obrigatórios)
+  - Linhas sem data ou categoria não seguem para camada analítica.
+  - margem = receita - custo.
+
+7. Integrações e APIs (se aplicável)
+- Endpoints (método, payload exemplo em JSON)
+  - Não aplicável nesta etapa (processamento local em arquivo).
+- Webhooks e política de retries exponenciais
+  - Não aplicável nesta etapa.
+
+8. Segurança e Privacidade
+- Autenticação e autorização
+  - Não aplicável no MVP local monousuário.
+- Proteção de dados sensíveis
+  - Não versionar dados sensíveis no Git.
+  - Uso de .env para parâmetros de conexão futuros.
+- Isolamento por usuário ou organização
+  - Não aplicável nesta etapa.
+
+9. Publicação (Deploy)
+- Ambiente sugerido
+  - Desenvolvimento local com uv.
+  - Serviços auxiliares via OrbStack/Docker apenas quando necessário.
+- Uso de variáveis de ambiente
+  - DUCKDB_PATH, DATA_DIR, LOG_LEVEL.
+- Checklist pós-deploy
+  - Validar leitura do arquivo.
+  - Validar criação/atualização da tabela no DuckDB.
+  - Validar carregamento da página Marimo.
+
+10. Testes e Critérios de Aceite
+- Critérios objetivos por feature
+  - Ingestão: arquivo é lido e total de linhas registrado em log.
+  - Transformação: tipos esperados aplicados e margem calculada.
+  - DuckDB: tabela consultável com SQL e contagem de linhas esperada.
+  - Dashboard: filtros alteram KPIs e tabela.
+- Roteiro de teste manual simples
+  - Executar pipeline.
+  - Consultar DuckDB.
+  - Abrir app Marimo e validar filtros.
+
+11. Roadmap / Entregas Incrementais
+- Milestone 1: Fundamentos
+  - Ambiente uv, estrutura de pastas e dados de entrada.
+- Milestone 2: Pipeline
+  - Ingestão + transformação com Polars + carga DuckDB.
+- Milestone 3: Visualização
+  - Dashboard Marimo com KPIs e filtros.
+- Milestone 4: Robustez
+  - Logs estruturados, validações adicionais, preparação para deploy.
+
+12. Restrições de Escopo
+- Arquivos/componentes onde a IA pode mexer
+  - Estrutura nova sob src/, app/, tests/ e arquivos de configuração do projeto.
+- O que não deve ser alterado
+  - Histórico Git e credenciais locais.
+- Solicitar approach antes do código
+  - Sempre apresentar plano de 3–6 passos e aguardar aprovação.
+- Solicitar fix mínimo em ajustes
+  - Corrigir apenas o ponto funcional necessário.
+
+13. Assunções
+- Usuário terá ambiente Linux/macOS com Python 3.11+.
+- Dados iniciais estarão em CSV.
+- Escopo inicial é local, sem autenticação.
+- Marimo será suficiente para primeira camada de BI interativo.
+
+14. Perguntas em Aberto
+- Qual domínio de dados será usado primeiro (vendas, financeiro, operações)?
+- Qual volume médio de dados por carga inicial?
+- Haverá necessidade de atualização diária automática já no MVP?
+- Qual nível de detalhamento dos KPIs prioritários?
+
+PROMPT FINAL
+Contexto
+- Produto educacional para construir uma plataforma web de BI local com Python, com foco em aprendizado prático de Modern Data Stack 2.0 (uv, Polars, DuckDB, Marimo).
+- Público: pessoa desenvolvedora/analista em aprendizagem estruturada.
+
+Tarefa
+- Implementar a etapa inicial do MVP com:
+  - setup de projeto com uv,
+  - ingestão de CSV com Polars,
+  - transformação básica,
+  - carga em DuckDB,
+  - dashboard Marimo com KPIs e filtros.
+- Arquivos/componentes-alvo:
+  - src/pipeline/*
+  - app/dashboard.py
+  - tests/*
+  - pyproject.toml
+
+Diretrizes
+- Mobile-first.
+- Acessibilidade básica (foco visível, teclado, textos claros nos controles).
+- Estilo visual simples e limpo, sem dependências extras de UI.
+- Implementar estados vazios para ausência de dados.
+- Solicitar approach em 3–6 passos antes do código.
+
+Restrições
+- Edite apenas: src/, app/, tests/, pyproject.toml, README técnico do projeto.
+- Não tocar em credenciais, .env e histórico Git.
+- Não adicionar dependências pagas não citadas.
+
+Entrega Esperada
+- Pipeline executável localmente.
+- Base DuckDB populada com tabela analítica.
+- Dashboard Marimo funcional com filtros por período e categoria.
+- Testes mínimos de transformação e carga.
+
+Checklist de Validação
+- Responsivo.
+- Acessível nos controles básicos.
+- Dentro do escopo definido.
+- Sem alterações fora dos arquivos permitidos.
+- Funcional em mobile.
